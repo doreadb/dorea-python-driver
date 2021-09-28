@@ -7,5 +7,5 @@ def get_token(url: str, password: str):
     result = requests.post(url=url, data={ "password": password })
     
     if result.status_code == 200:
-        return result.json()
+        return result.json()["data"]
     return None
