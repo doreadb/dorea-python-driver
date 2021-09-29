@@ -5,7 +5,12 @@ from dorea import auth
 
 
 class DoreaClient(object):
-    def __init__(self, addr: Tuple[str, int], password: str) -> None:
+    def __init__(
+        self, 
+        addr: Tuple[str, int], 
+        password: str,
+        default_group = "default"
+    ) -> None:
 
         url = "http://" + addr[0] + ":" + str(addr[1])
 
@@ -20,10 +25,11 @@ class DoreaClient(object):
             "token": token,
             "url": url
         }
+        self.group = default_group
 
     def ping(self):
 
-        r = requests.post(
+        r = requests.post (
             self.__options["url"] + "/ping",
             headers={ "Authorization": "Bearer " + self.__options["token"]["token"] }
         )
@@ -33,3 +39,6 @@ class DoreaClient(object):
         if r.json()['alpha'] == "OK":
             return True
         return False
+
+    def select(self, name):
+        pass

@@ -12,7 +12,8 @@ def main():
         "DOREA@TEST"            # 服务器连接密码（Web Service）
     )
 
-    print(client.ping())
+    db = client.open("default")
+    print(db.execute("get foo"))
 
 
 if __name__ == "__main__":
