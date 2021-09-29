@@ -12,7 +12,7 @@ def main():
         "DOREA@TEST"            # 服务器连接密码（Web Service）
     )
 
-    client.ping()
+    print(client.ping())
 
 
 if __name__ == "__main__":

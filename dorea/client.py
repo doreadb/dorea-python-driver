@@ -22,12 +22,14 @@ class DoreaClient(object):
         }
 
     def ping(self):
-        
+
         r = requests.post(
             self.__options["url"] + "/ping",
             headers={ "Authorization": "Bearer " + self.__options["token"]["token"] }
         )
         
-        if r.status_code == 200:
+        if r.status_code != 200:
+            return False
+        if r.json()['alpha'] == "OK":
             return True
         return False
