@@ -1,16 +1,12 @@
 from typing import Tuple
 
 import requests
+import json
 from dorea import auth
 
 
 class DoreaClient(object):
-    def __init__(
-        self, 
-        addr: Tuple[str, int], 
-        password: str,
-        default_group = "default"
-    ) -> None:
+    def __init__(self, addr: Tuple[str, int], password: str) -> None:
 
         url = "http://" + addr[0] + ":" + str(addr[1])
 
@@ -25,7 +21,6 @@ class DoreaClient(object):
             "token": token,
             "url": url
         }
-        self.group = default_group
 
     def ping(self):
 
@@ -34,11 +29,55 @@ class DoreaClient(object):
             headers={ "Authorization": "Bearer " + self.__options["token"]["token"] }
         )
         
+        if r.status_code == 401:
+            new = auth.get_token(self.__options["url"], self.__options["password"])
+            
+            if new != None:
+                self.__options['token'] = new
+                return self.ping()
+
         if r.status_code != 200:
             return False
         if r.json()['alpha'] == "OK":
             return True
         return False
 
-    def select(self, name):
-        pass
+    def open(self, name: str):
+        if not self.ping():
+            raise Exception("server connection failed")
+        return DoreaGroup(self.__options, name)
+
+class DoreaGroup(object):
+    def __init__(self, options, name) -> None:
+        
+        self.__options = options
+        self.name = name
+
+        self.__options["root"] = self.__options["url"]
+        self.__options["url"] += "/@" + name
+
+    def execute(self, command: str):
+
+        r = requests.post (
+            self.__options["url"] + "/execute",
+            headers={ "Authorization": "Bearer " + self.__options["token"]["token"] },
+            data={ "query": command }
+        )
+        
+        if r.status_code == 401:
+            new = auth.get_token(self.__options["root"], self.__options["password"])
+            
+            if new != None:
+                self.__options['token'] = new
+                return self.execute(command)
+
+        return r.json()
+
+    def get(self, key: str):
+        
+        result = self.execute("get {}".format(key))
+        
+        if result['alpha'] == "ERR":
+            return None
+        reply = result["data"]["reply"]
+        return json.loads(reply,)
