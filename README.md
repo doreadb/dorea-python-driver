@@ -21,4 +21,7 @@ db = client.open("pydorea") # 尝试打开某个库
 db.set("foo","bar") # 将一条字符串（“bar”）插入数据库
 
 assert db.get("foo") == "bar"
+
+res = db.execute("info keys") # 直接运行命令
+
 ```
