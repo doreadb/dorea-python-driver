@@ -1,7 +1,7 @@
 from typing import Tuple
 
 import requests
-import json
+import doson4py as doson
 from dorea import auth
 
 
@@ -80,4 +80,4 @@ class DoreaGroup(object):
         if result['alpha'] == "ERR":
             return None
         reply = result["data"]["reply"]
-        return json.loads(reply,)
+        return doson.loads(reply)
