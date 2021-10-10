@@ -1,8 +1,8 @@
-from typing import Tuple
+from typing import Any, Tuple
 
 import requests
 import doson4py as doson
-from dorea import auth
+from pydorea import auth
 
 
 class DoreaClient(object):
@@ -81,3 +81,23 @@ class DoreaGroup(object):
             return None
         reply = result["data"]["reply"]
         return doson.loads(reply)
+    
+    def setex(self, key: str, value: Any, expire=0) -> bool:
+        
+        value = doson.dumps(value)
+
+        code = "set {} {} {}".format(key, value, str(expire))
+        result = self.execute(code)
+
+        return result['alpha'] == "OK"
+    
+    def set(self, key: str, value: Any) -> bool:
+        return self.setex(key, value, 0)
+
+    def delete(self, key: str) -> bool:
+        result = self.execute("delete {}".format(key))
+        return result['alpha'] == "OK"
+
+    def clean(self) -> bool:
+        result = self.execute("clean")
+        return result['alpha'] == "OK"

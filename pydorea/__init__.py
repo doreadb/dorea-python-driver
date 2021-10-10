@@ -1,3 +1,3 @@
-from dorea.client import DoreaClient
+from pydorea.client import DoreaClient
 
-from dorea import auth
+from pydorea import auth

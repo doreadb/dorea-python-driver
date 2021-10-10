@@ -3,7 +3,7 @@ import json
 
 sys.path.append("..")
 
-from dorea import *
+from pydorea import *
 
 def main():
 
@@ -16,7 +16,8 @@ def main():
     )
 
     db = client.open("default")
-    print(db.get("foo"))
+    # print(db.get("foo"))
+    print(db.setex("hello", 3, 10))
 
 
 if __name__ == "__main__":
