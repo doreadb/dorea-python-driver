@@ -6,31 +6,40 @@ from pydorea import auth
 
 
 class DoreaClient(object):
-    def __init__(self, addr: Tuple[str, int], password: str) -> None:
+    
+    def __init__(self, addr: Tuple[str, int], account: Tuple[str, str]) -> None:
 
         url = "http://" + addr[0] + ":" + str(addr[1])
 
-        token = auth.get_token(url, password)
+        self.account = auth.Account(account[0], account[1])
+
+        token = self.account.get_token(url)
 
         if token == None: 
             raise ValueError("service password failed")
 
         self.__options = {
             "addr": addr,
-            "password": password,
             "token": token,
             "url": url
         }
 
     def ping(self):
 
-        r = requests.post (
-            self.__options["url"] + "/ping",
-            headers={ "Authorization": "Bearer " + self.__options["token"]["token"] }
-        )
+        try:
+            r = requests.post (
+                self.__options["url"] + "/ping",
+                headers={ "Authorization": "Bearer " + self.__options["token"]["token"] }
+            )
+        except Exception:
+            return False
         
         if r.status_code == 401:
-            new = auth.get_token(self.__options["url"], self.__options["password"])
+
+            if r.json()["message"] == "token do not have access to this database.":
+                raise ValueError("account no permission")
+
+            new = self.account.get_token(self.__options["url"])
             
             if new != None:
                 self.__options['token'] = new
@@ -45,13 +54,15 @@ class DoreaClient(object):
     def open(self, name: str):
         if not self.ping():
             raise Exception("server connection failed")
-        return DoreaGroup(self.__options, name)
+        return DoreaGroup(self.__options, name, self.account)
 
 class DoreaGroup(object):
-    def __init__(self, options, name) -> None:
+    def __init__(self, options, name, account) -> None:
         
         self.__options = options
         self.name = name
+
+        self.account = account
 
         self.__options["root"] = self.__options["url"]
         self.__options["url"] += "/@" + name
@@ -65,12 +76,14 @@ class DoreaGroup(object):
         )
         
         if r.status_code == 401:
-            new = auth.get_token(self.__options["root"], self.__options["password"])
-            
+
+            if r.json()["message"] == "token do not have access to this database.":
+                raise ValueError("account no permission")
+
+            new = self.account.get_token(self.__options["root"])
             if new != None:
                 self.__options['token'] = new
                 return self.execute(command)
-
         return r.json()
 
     def get(self, key: str):

@@ -1,11 +1,23 @@
 import requests
 
-def get_token(url: str, password: str):
-    
-    url = url + "/auth"
+class Account(object):
 
-    result = requests.post(url=url, data={ "password": password })
+    def __init__(self, username, password):
+        self.username = username
+        self.password = password
     
-    if result.status_code == 200:
-        return result.json()["data"]
-    return None
+    def get_token(self, url: str):
+
+        url = url + "/auth"
+
+        try:
+            result = requests.post(url=url, data={ 
+                "username": self.username,
+                "password": self.password,
+            })
+        except Exception:
+            return None
+
+        if result.status_code == 200:
+            return result.json()["data"]
+        return None
